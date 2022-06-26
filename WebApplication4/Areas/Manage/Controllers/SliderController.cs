@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using WebApplication4.DAL;
 using WebApplication4.Models;
 using WebApplication4.Utilites;
+using WebApplication4.Vm;
 
 namespace WebApplication4.Areas.Manage.Controllers
 {
@@ -23,10 +26,25 @@ namespace WebApplication4.Areas.Manage.Controllers
 
 
         }
-        public IActionResult Index()
+        public async Task<ActionResult> Index(int page = 1)
         {
-           List< Slider> slider = _context.sliders.ToList();
-            return View(slider);
+            int pageCount = GetPageCount(_context.sliders.Count());
+            if (page < 1 || page > pageCount)
+            {
+                page = 1;
+            }
+            List<Slider> products = await _context.sliders.Skip((page - 1) * 10).Take(10).ToListAsync();
+            PaginationVm<Slider> pagination = new PaginationVm<Slider>
+            {
+                Items = products,
+                PageCount = pageCount,
+                ActivPage = page
+            };
+            return View(pagination);
+        }
+        private int GetPageCount(int count)
+        {
+            return (int)Math.Ceiling((double)count / 10);
         }
         public IActionResult Create()
         {

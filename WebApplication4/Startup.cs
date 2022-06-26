@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApplication4.DAL;
+using WebApplication4.Models;
 
 namespace WebApplication4
 {
@@ -32,6 +34,20 @@ namespace WebApplication4
 
                 opt.UseSqlServer(mustafaMiktik);
             });
+            services.AddIdentity<AppUser,IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+            services.Configure<IdentityOptions>(opt =>
+            {
+                opt.Password.RequireUppercase = true;
+                opt.Password.RequiredLength = 8;
+                opt.Password.RequireNonAlphanumeric = false;
+                opt.Password.RequireDigit = true;
+                opt.Password.RequireUppercase = true;
+                opt.Lockout.DefaultLockoutTimeSpan=TimeSpan.FromMinutes(1);
+                opt.Lockout.MaxFailedAccessAttempts = 3;
+                opt.User.RequireUniqueEmail = true;
+
+
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,6 +69,7 @@ namespace WebApplication4
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
             app.UseEndpoints(endpoints =>
             {
